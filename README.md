@@ -40,7 +40,7 @@ Permite preencher informações do atendimento:
 
 ## 🖥️ Acesso
 
-👉 (coloque aqui o link do seu GitHub Pages)
+👉 https://m4rques98.github.io/testederedemt/
 
 ---
 
