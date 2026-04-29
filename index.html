@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Diagnóstico Rápido de Internet - Marques Tech</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--green:#0b3f18;--border:#202020}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e9e9e9;color:#111}
+.app{display:grid;grid-template-columns:390px 1fr;gap:24px;padding:24px}
+.panel{background:white;border-radius:14px;padding:18px;box-shadow:0 2px 12px #0002;height:fit-content}
+.panel h1{font-size:22px;margin:0 0 14px}
+label{display:block;font-weight:700;margin-top:12px;font-size:13px}
+input,textarea,select{width:100%;padding:9px;margin-top:4px;border:1px solid #bbb;border-radius:8px;font-size:14px}
+textarea{min-height:80px}
+button{border:0;background:var(--green);color:white;padding:11px 14px;border-radius:8px;cursor:pointer;font-weight:700;margin-top:12px}
+button.secondary{background:#444} button.blue{background:#0066aa}
+.status-box{background:#f7f7f7;border:1px solid #ddd;padding:10px;border-radius:8px;margin-top:12px;font-size:13px}
+.preview-wrap{display:flex;justify-content:center}
+.page{width:210mm;min-height:297mm;background:white;padding:20mm 22mm 14mm;box-shadow:0 2px 16px #0004;font-size:13.5px;line-height:1.28}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}
+.brand{font-weight:800;color:var(--green);font-size:22px}.subbrand{font-size:12px;margin-top:4px}
+.title{text-align:center;font-weight:800;font-size:18px;margin:28px 0}.meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.section-title{background:var(--green);color:white;padding:7px 10px;font-weight:800;margin-top:18px}
+table{width:100%;border-collapse:collapse} th,td{border:1px solid var(--border);padding:7px 8px;vertical-align:top} th{background:#f1f1f1;text-align:left}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-weight:800;font-size:12px}.ok{background:#d9f5df;color:#0b5d1e}.warn{background:#fff2bf;color:#805d00}.fail{background:#ffd8d8;color:#8a0000}
+.footer{margin-top:34px;text-align:center;font-size:12px}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .panel {
+    display: none !important;
+  }
+
+  .app {
+    display: block !important;
+    width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .preview-wrap {
+    display: block !important;
+    width: 210mm !important;
+  }
+
+  .page {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 20mm 22mm 14mm !important;
+    box-shadow: none !important;
+    transform: none !important;
+    zoom: 1.0;
+  }
+}
+@media(max-width:950px){.app{grid-template-columns:1fr}.page{transform:scale(.78);transform-origin:top center}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="panel">
+    <h1>Diagnóstico Rápido de Internet</h1>
+    <label>Cliente</label><input id="cliente" placeholder="Nome do cliente" oninput="atualizar()">
+    <label>Data</label><input id="data" type="date" oninput="atualizar()">
+    <label>Local / Unidade</label><input id="local" placeholder="Ex: salão, escritório, caixa..." oninput="atualizar()">
+    <label>Provedor / Link</label><input id="provedor" placeholder="Ex: Claro, Vivo, link dedicado..." oninput="atualizar()">
+    <label>Tipo de problema relatado</label>
+    <select id="problema" onchange="atualizar()">
+      <option>Teste de rotina</option>
+      <option>Internet lenta</option><option>Internet caindo</option><option>Sem internet</option>
+      <option>Sistema/PDV instável</option><option>Impressora/rede instável</option><option>Outro</option>
+    </select>
+    <label>Equipamentos envolvidos</label><textarea id="equipamentos" placeholder="Ex: Mikrotik, switch, AP, modem, PDV..." oninput="atualizar()"></textarea>
+    <button class="blue" onclick="rodarDiagnostico()">Rodar diagnóstico automático</button>
+    <div class="status-box" id="statusAuto">Status automático ainda não executado.</div>
+    <label>Observações técnicas</label><textarea id="obs" placeholder="Digite observações, testes feitos, orientação ao cliente..." oninput="atualizar()"></textarea>
+    <label>Conclusão</label>
+    <select id="conclusao" onchange="atualizar()">
+      <option>Link aparentemente normal no momento do teste.</option>
+      <option>Indícios de instabilidade no link de internet.</option>
+      <option>Possível falha interna de rede/equipamento.</option>
+      <option>Necessário acompanhamento/monitoramento.</option>
+      <option>Necessário acionar provedor.</option>
+    </select>
+    <button onclick="atualizar()">Atualizar relatório</button>
+    <button class="secondary" onclick="window.print()">Imprimir / salvar PDF</button>
+  </div>
+  <div class="preview-wrap">
+    <div class="page">
+      <div class="header"><div><div class="brand">MARQUES TECH</div><div class="subbrand">Relatório técnico de diagnóstico de internet</div></div><div style="text-align:right;font-size:12px">Luiz Marques<br>Técnico de TI<br>CNPJ: 65.495.823/0001-80</div></div>
+      <div class="title">DIAGNÓSTICO RÁPIDO DE INTERNET</div>
+      <div class="meta"><div><b>Cliente:</b> <span id="pCliente"></span></div><div><b>Data:</b> <span id="pData"></span></div><div><b>Local/Unidade:</b> <span id="pLocal"></span></div><div><b>Provedor/Link:</b> <span id="pProvedor"></span></div></div>
+      <div class="section-title">Resumo do chamado</div>
+      <table><tr><th style="width:32%">Problema relatado</th><td id="pProblema"></td></tr><tr><th>Equipamentos envolvidos</th><td id="pEquipamentos"></td></tr></table>
+      <div class="section-title">Testes automáticos</div>
+      <table><thead><tr><th>Teste</th><th>Resultado</th><th>Tempo / Detalhe</th></tr></thead><tbody id="pTestes"><tr><td colspan="3">Diagnóstico ainda não executado.</td></tr></tbody></table>
+      <div class="section-title">Observações técnicas</div><table><tr><td id="pObs" style="height:80px"></td></tr></table>
+      <div class="section-title">Conclusão</div><table><tr><td id="pConclusao"></td></tr></table>
+      <div class="footer">Fone: (11) 91295-9268 | Email: marques@marquestechsolutions.com.br</div>
+    </div>
+  </div>
+</div>
+<script>
+let resultados=[];
+function hojeISO(){const d=new Date();const off=d.getTimezoneOffset();const local=new Date(d.getTime()-off*60000);return local.toISOString().slice(0,10)}
+function dataBR(iso){if(!iso)return "";const [a,m,d]=iso.split("-");return `${d}/${m}/${a}`}
+function badge(status){if(status==="OK")return `<span class="badge ok">OK</span>`;if(status==="Atenção")return `<span class="badge warn">Atenção</span>`;return `<span class="badge fail">Falha</span>`}
+function atualizar(){
+ document.getElementById("pCliente").textContent=document.getElementById("cliente").value;
+ document.getElementById("pData").textContent=dataBR(document.getElementById("data").value);
+ document.getElementById("pLocal").textContent=document.getElementById("local").value;
+ document.getElementById("pProvedor").textContent=document.getElementById("provedor").value;
+ document.getElementById("pProblema").textContent=document.getElementById("problema").value;
+ document.getElementById("pEquipamentos").textContent=document.getElementById("equipamentos").value;
+ document.getElementById("pObs").textContent=document.getElementById("obs").value;
+ document.getElementById("pConclusao").textContent=document.getElementById("conclusao").value;
+ const tbody=document.getElementById("pTestes");
+ tbody.innerHTML=resultados.length?resultados.map(r=>`<tr><td>${r.nome}</td><td>${badge(r.status)}</td><td>${r.detalhe}</td></tr>`).join(""):`<tr><td colspan="3">Diagnóstico ainda não executado.</td></tr>`;
+}
+function testarImagem(nome,url,limiteMs=5000){
+ return new Promise(resolve=>{
+  const inicio=performance.now();const img=new Image();
+  const timer=setTimeout(()=>resolve({nome,status:"Falha",detalhe:`Sem resposta em ${limiteMs} ms`}),limiteMs);
+  img.onload=()=>{clearTimeout(timer);const tempo=Math.round(performance.now()-inicio);resolve({nome,status:tempo>1500?"Atenção":"OK",detalhe:`Resposta em ${tempo} ms`})};
+  img.onerror=()=>{clearTimeout(timer);const tempo=Math.round(performance.now()-inicio);resolve({nome,status:"Falha",detalhe:`Falhou após ${tempo} ms`})};
+  img.src=url+(url.includes("?")?"&":"?")+"t="+Date.now();
+ });
+}
+async function buscarIP(){try{const r=await fetch("https://api64.ipify.org?format=json");const j=await r.json();return {nome:"IP público",status:"OK",detalhe:j.ip}}catch(e){return {nome:"IP público",status:"Falha",detalhe:"Não foi possível consultar IP público"}}}
+async function rodarDiagnostico(){
+ document.getElementById("statusAuto").textContent="Executando testes...";
+ resultados=[{nome:"Status do navegador",status:navigator.onLine?"OK":"Falha",detalhe:navigator.onLine?"Navegador indica conexão ativa":"Navegador indica sem conexão"}];
+ const testes=await Promise.all([testarImagem("Acesso Google","https://www.google.com/favicon.ico"),testarImagem("Acesso Cloudflare","https://www.cloudflare.com/favicon.ico"),testarImagem("Acesso Microsoft","https://www.microsoft.com/favicon.ico"),buscarIP()]);
+ resultados=resultados.concat(testes);
+ const falhas=resultados.filter(r=>r.status==="Falha").length;const atencao=resultados.filter(r=>r.status==="Atenção").length;
+ document.getElementById("statusAuto").textContent=falhas?`Diagnóstico concluído: ${falhas} falha(s) encontrada(s).`:atencao?`Diagnóstico concluído: ${atencao} ponto(s) de atenção.`:"Diagnóstico concluído: sem falhas aparentes.";
+ atualizar();
+}
+document.getElementById("data").value=hojeISO();atualizar();
+</script>
+</body>
+</html>
